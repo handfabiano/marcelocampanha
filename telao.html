@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telão — Dinâmica dos 20</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#04327E; --navy2:#0C46A5; --navy3:#021D4D;
+    --gold:#FFC900; --cyan:#00B1ED; --ok:#2ECC71;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Archivo',sans-serif;color:#fff;min-height:100dvh;background:radial-gradient(1400px 800px at 85% -10%, #0d4aa8 0%, var(--navy) 55%, var(--navy3) 120%);padding:clamp(16px,2.5vw,40px)}
+  header{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:clamp(16px,2.5vh,30px)}
+  .brand{display:flex;align-items:center;gap:14px}
+  .chip{width:56px;height:56px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}
+  .chip img{width:34px}
+  h1{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(24px,3.6vw,44px);line-height:1.05}
+  .sub{font-size:clamp(12px,1.3vw,15px);color:#C9D6F2;margin-top:2px}
+  .totals{display:flex;gap:14px}
+  .tot{background:rgba(255,255,255,.08);border-radius:16px;padding:12px 22px;text-align:center;min-width:130px}
+  .tot .v{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(26px,3.4vw,42px);color:var(--gold);line-height:1}
+  .tot .l{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:#9FB2DA;font-weight:700;margin-top:5px}
+  .tot.green .v{color:var(--ok)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:clamp(12px,1.6vw,20px)}
+  .p{background:rgba(255,255,255,.08);border-radius:20px;padding:clamp(14px,1.8vw,24px);border:2px solid transparent;transition:border .3s;animation:enter .4s ease}
+  @keyframes enter{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+  .p.done{border-color:var(--ok);background:rgba(46,204,113,.14)}
+  .p .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:10px}
+  .p .nm{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(18px,2vw,26px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .p .ct{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(20px,2.2vw,30px);color:var(--gold);white-space:nowrap}
+  .p.done .ct{color:var(--ok)}
+  .pb{height:14px;border-radius:100px;background:rgba(255,255,255,.14);overflow:hidden}
+  .pb i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--cyan));transition:width .5s ease;border-radius:100px}
+  .p.done .pb i{background:var(--ok)}
+  .badge{display:none;margin-top:10px;font-weight:700;font-size:clamp(12px,1.3vw,15px);color:var(--ok)}
+  .p.done .badge{display:block;animation:enter .35s ease}
+  .empty{grid-column:1/-1;text-align:center;padding:8vh 20px;color:#9FB2DA}
+  .empty .big{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(24px,3.4vw,42px);color:#fff;margin-bottom:10px}
+  footer{margin-top:clamp(16px,3vh,30px);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;font-size:clamp(11px,1.2vw,14px);color:#9FB2DA}
+  .link{font-weight:700;color:var(--gold)}
+  .status{display:flex;align-items:center;gap:8px}
+  .status i{width:10px;height:10px;border-radius:50%;background:#e74c3c;display:inline-block}
+  .status.on i{background:var(--ok);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="chip"><img src="iso.png" alt=""></div>
+    <div>
+      <h1>Dinâmica dos 20 <span style="color:var(--gold)">• ao vivo</span></h1>
+      <div class="sub" id="salatxt">Rede Marcelo Nunes • Eleições 2026</div>
+    </div>
+  </div>
+  <div class="totals">
+    <div class="tot"><div class="v" id="tLid">0</div><div class="l">participantes</div></div>
+    <div class="tot"><div class="v" id="tNom">0</div><div class="l">nomes listados</div></div>
+    <div class="tot green"><div class="v" id="tDone">0</div><div class="l">listas completas</div></div>
+  </div>
+</header>
+
+<div class="grid" id="grid">
+  <div class="empty" id="empty">
+    <div class="big">Aguardando os participantes…</div>
+    <p>Abram o link no celular, digitem o nome e comecem a lista.<br>Assim que o primeiro nome for digitado, ele aparece aqui.</p>
+  </div>
+</div>
+
+<footer>
+  <div>Participe: <span class="link" id="urltxt"></span></div>
+  <div class="status" id="st"><i></i><span id="sttxt">conectando…</span></div>
+</footer>
+
+<script>
+const N=20;
+const SALA=new URLSearchParams(location.search).get('sala')||'treino';
+document.getElementById('salatxt').textContent='Sala: '+SALA+' • Rede Marcelo Nunes • 2026';
+document.getElementById('urltxt').textContent=location.origin+(SALA!=='treino'?'/?sala='+SALA:'');
+
+/* estado acumulado no cliente: mesmo que a memória do servidor reinicie,
+   o que já apareceu no telão permanece */
+const estado={};
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function render(){
+  const grid=document.getElementById('grid');
+  const nomes=Object.keys(estado).sort((a,b)=>a.localeCompare(b,'pt'));
+  document.getElementById('empty').style.display=nomes.length?'none':'block';
+  let tN=0,tD=0;
+  nomes.forEach(lider=>{
+    const q=estado[lider].nomes.length;
+    tN+=q; if(q>=N)tD++;
+    let card=document.getElementById('c-'+CSS.escape(lider));
+    if(!card){
+      card=document.createElement('div');card.className='p';card.id='c-'+lider;
+      card.innerHTML='<div class="top"><div class="nm"></div><div class="ct"></div></div><div class="pb"><i></i></div><div class="badge">🎉 Margem de segurança completa!</div>';
+      grid.appendChild(card);
+      card.querySelector('.nm').textContent=lider;
+    }
+    card.classList.toggle('done',q>=N);
+    card.querySelector('.ct').textContent=q+' / '+N;
+    card.querySelector('.pb i').style.width=(Math.min(q,N)/N*100)+'%';
+  });
+  document.getElementById('tLid').textContent=nomes.length;
+  document.getElementById('tNom').textContent=tN;
+  document.getElementById('tDone').textContent=tD;
+}
+
+async function poll(){
+  const st=document.getElementById('st'),sttxt=document.getElementById('sttxt');
+  try{
+    const r=await fetch('/api/dinamica?sala='+encodeURIComponent(SALA),{cache:'no-store'});
+    const j=await r.json();
+    for(const [lider,info] of Object.entries(j.listas||{})){
+      estado[lider]={nomes:info.nomes||[]};
+    }
+    render();
+    st.classList.add('on');sttxt.textContent='ao vivo • atualiza a cada 2s';
+  }catch(e){
+    st.classList.remove('on');sttxt.textContent='reconectando…';
+  }
+}
+poll();
+setInterval(poll,2000);
+</script>
+</body>
+</html>
