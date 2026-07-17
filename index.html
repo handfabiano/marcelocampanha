@@ -103,6 +103,7 @@ const SALA=new URLSearchParams(location.search).get('sala')||'treino';
 const list=document.getElementById('list');
 const KEY='dinamica20:'+SALA;
 let data=JSON.parse(localStorage.getItem(KEY)||'{}');
+let syncTimer=null, lastSent='';
 
 for(let i=1;i<=N;i++){
   const d=document.createElement('div');d.className='slot';
@@ -136,7 +137,6 @@ function update(){
 update();
 
 /* ===== sincronização com o telão (sem banco de dados) ===== */
-let syncTimer=null, lastSent='';
 function agendarSync(){clearTimeout(syncTimer);syncTimer=setTimeout(sync,900)}
 async function sync(){
   const lider=nome.value.trim();

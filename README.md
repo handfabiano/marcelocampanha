@@ -1,15 +1,19 @@
-# Rede Marcelo Nunes 2026 — Apresentação + Dinâmica dos 20
+# Rede Marcelo Nunes 2026 — Apresentação + Quiz + Dinâmica dos 20
 
-Material de treinamento da rede de líderes: uma apresentação interativa de 12 slides que termina com um convite direto para a **Dinâmica dos 20** — cada participante lista no celular as 20 pessoas mais próximas (sua **margem de segurança**), e o progresso de todos aparece **ao vivo no telão**.
+Material de treinamento da rede de líderes: uma apresentação interativa de 13 slides que, no final, chama a plateia para um **quiz de 5 perguntas** (respondido pelo celular via QR Code, com resultado ao vivo na tela) e depois para a **Dinâmica dos 20** — cada participante lista no celular as 20 pessoas mais próximas (sua **margem de segurança**), com progresso **ao vivo no telão**.
 
 ## Como funciona
 
 | Página | URL | Uso |
 |---|---|---|
-| Apresentação | `/apresentacao.html` | Slides para conduzir a reunião/treinamento; o último slide tem um botão que leva direto para a Dinâmica dos 20 |
-| Participante | `/` | Cada líder abre no celular, digita o nome e preenche os 20 nomes |
+| Apresentação | `/apresentacao.html` | Slides para conduzir a reunião/treinamento. Perto do fim: QR Code do quiz, QR Code da Dinâmica dos 20, e a tela final vira o placar de respostas ao vivo |
+| Quiz | `/quiz.html` | Cada participante escaneia o QR do slide, digita o nome e responde 5 perguntas de múltipla escolha com feedback certo/errado na hora |
+| Participante (Dinâmica) | `/` | Cada líder abre no celular, digita o nome e preenche os 20 nomes |
 | Telão | `/telao.html` | Projetada na TV/projetor — mostra os cards de cada líder com barra de progresso, contadores gerais e celebração ao completar 20/20 |
-| API | `/api/dinamica` | Armazenamento em memória (sem banco de dados) |
+| API do quiz | `/api/quiz` | Armazenamento em memória das respostas do quiz (sem banco de dados) |
+| API da dinâmica | `/api/dinamica` | Armazenamento em memória das listas dos 20 (sem banco de dados) |
+
+As 5 perguntas do quiz ficam no topo do `<script>` de `quiz.html` (array `QUESTIONS`) e são espelhadas em `apresentacao.html` (array `QUIZ_QUESTIONS`) para rotular os resultados — para trocar as perguntas, edite os dois arquivos juntos, na mesma ordem.
 
 ## Sem banco de dados
 
@@ -26,10 +30,14 @@ Ideal para dinâmicas de sala (5–8 pessoas, sessões de até ~1h). Para persis
 
 Use o parâmetro `?sala=` para separar turmas:
 
-- Participantes: `https://SEU-DOMINIO/?sala=turma1`
+- Apresentação: `https://SEU-DOMINIO/apresentacao.html?sala=turma1`
+- Quiz: `https://SEU-DOMINIO/quiz.html?sala=turma1`
+- Participantes (Dinâmica): `https://SEU-DOMINIO/?sala=turma1`
 - Telão: `https://SEU-DOMINIO/telao.html?sala=turma1`
 
-Sem o parâmetro, todos entram na sala `treino`.
+Sem o parâmetro, todos entram na sala `treino`. Ao abrir a apresentação com `?sala=turma1`, os QR Codes do quiz e da dinâmica já saem apontando para essa mesma sala automaticamente.
+
+> Os QR Codes só aparecem corretos depois do deploy (eles usam o endereço real da página, `location.origin`, para montar o link). Abrindo o arquivo `apresentacao.html` direto do computador (`file://`), o QR não tem para onde apontar.
 
 ## WhatsApp direto para a coordenação
 
