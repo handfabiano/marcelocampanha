@@ -1,11 +1,12 @@
-# Dinâmica dos 20 — Rede Marcelo Nunes 2026
+# Rede Marcelo Nunes 2026 — Apresentação + Dinâmica dos 20
 
-Dinâmica interativa de treinamento para grupos de 5 a 8 líderes: cada participante lista no celular as 20 pessoas mais próximas (sua **margem de segurança**), e o progresso de todos aparece **ao vivo no telão**.
+Material de treinamento da rede de líderes: uma apresentação interativa de 12 slides que termina com um convite direto para a **Dinâmica dos 20** — cada participante lista no celular as 20 pessoas mais próximas (sua **margem de segurança**), e o progresso de todos aparece **ao vivo no telão**.
 
 ## Como funciona
 
 | Página | URL | Uso |
 |---|---|---|
+| Apresentação | `/apresentacao.html` | Slides para conduzir a reunião/treinamento; o último slide tem um botão que leva direto para a Dinâmica dos 20 |
 | Participante | `/` | Cada líder abre no celular, digita o nome e preenche os 20 nomes |
 | Telão | `/telao.html` | Projetada na TV/projetor — mostra os cards de cada líder com barra de progresso, contadores gerais e celebração ao completar 20/20 |
 | API | `/api/dinamica` | Armazenamento em memória (sem banco de dados) |
