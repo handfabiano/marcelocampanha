@@ -181,6 +181,15 @@
   .res-opt .res-ct{flex:0 0 34px;text-align:right;font-weight:700;color:var(--gold);font-size:clamp(12px,1.3vw,14px)}
   .res-total{margin-top:14px;font-size:clamp(13px,1.5vw,15px);color:#C9D3E8}
   .res-total b{color:var(--gold);font-family:'Fraunces',serif;font-size:clamp(20px,2.6vw,28px)}
+
+  /* painel de controle do quiz */
+  .qc-btn{margin-top:22px;background:var(--gold);color:var(--navy);font-family:'Archivo';font-weight:700;font-size:clamp(15px,1.8vw,19px);padding:16px 34px;border-radius:100px;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.28);transition:transform .1s}
+  .qc-btn:active{transform:scale(.97)}
+  .qc-num{font-size:clamp(12px,1.4vw,14px);letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-top:6px}
+  .qc-qtext{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(20px,2.6vw,30px);color:#fff;margin:10px auto 4px;max-width:820px}
+  .qc-reset{margin-top:26px}
+  .qc-reset a{color:#7d8bab;font-size:12px;text-decoration:none}
+  .qc-reset a:hover{color:#C9D3E8}
   @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -382,17 +391,35 @@
     </div>
   </section>
 
-  <!-- 8 QUIZ QR -->
+  <!-- 8 QUIZ AO VIVO (controlado pelo apresentador) -->
   <section class="slide dark">
     <div class="content" style="text-align:center">
       <div class="eyebrow">Vamos testar? • interativo</div>
-      <h2>Pegue o celular e responda</h2>
-      <p class="lead" style="margin:0 auto">5 perguntas rápidas pra ver quem prestou atenção. Escaneie o QR Code abaixo — a resposta de todo mundo aparece ao vivo na tela de resultados.</p>
-      <div class="qr-wrap">
-        <img id="qrQuiz" alt="QR Code do quiz">
-        <div class="qr-url" id="qrQuizUrl"></div>
+      <h2>Quiz ao vivo</h2>
+
+      <div id="qcAguardando">
+        <p class="lead" style="margin:0 auto">5 perguntas, uma de cada vez — todo mundo responde junto, no comando do apresentador. Escaneie o QR Code pra entrar na sala.</p>
+        <div class="qr-wrap">
+          <img id="qrQuiz" alt="QR Code do quiz">
+          <div class="qr-url" id="qrQuizUrl"></div>
+        </div>
+        <div class="qr-live">Já entraram: <b id="qtdQuiz">0</b> pessoa(s)</div>
+        <button type="button" class="qc-btn" id="btnIniciar">▶️ Iniciar quiz</button>
       </div>
-      <div class="qr-live">Respondendo agora: <b id="qtdQuiz">0</b> pessoa(s)</div>
+
+      <div id="qcPergunta" style="display:none">
+        <div class="qc-num" id="qcNum">Pergunta 1 de 5</div>
+        <div class="qc-qtext" id="qcQtext"></div>
+        <div class="res-list" id="qcBars"></div>
+        <div class="qr-live" id="qcRespondidos"></div>
+        <button type="button" class="qc-btn" id="btnAcao">🔍 Revelar resposta</button>
+      </div>
+
+      <div id="qcFim" style="display:none">
+        <div class="qr-live" style="font-size:clamp(16px,2vw,20px);color:var(--ok)">🎉 Quiz encerrado! Confira o resumo na próxima tela.</div>
+      </div>
+
+      <p class="qc-reset"><a href="#" id="btnReiniciar">↺ reiniciar quiz (ensaio)</a></p>
     </div>
   </section>
 
@@ -428,13 +455,13 @@
     </div>
   </section>
 
-  <!-- 11 RESULTADOS AO VIVO -->
+  <!-- 11 RESUMO FINAL DO QUIZ -->
   <section class="slide dark">
     <div class="content">
-      <div class="eyebrow">Ao vivo • tela de respostas</div>
-      <h2>Resultado do quiz em tempo real</h2>
+      <div class="eyebrow">Tela de respostas</div>
+      <h2>Resumo final do quiz</h2>
       <div class="res-list" id="resList"></div>
-      <div class="res-total">Total de respostas: <b id="resTotal">0</b></div>
+      <div class="res-total">Total de participantes: <b id="resTotal">0</b></div>
     </div>
   </section>
 
@@ -589,15 +616,92 @@ function renderQuizResults(listas){
   });
 }
 
+let quizListas={};
 async function pollQuiz(){
   try{
     const r=await fetch('/api/quiz?sala='+encodeURIComponent(SALA),{cache:'no-store'});
     const j=await r.json();
-    renderQuizResults(j.listas||{});
+    quizListas=j.listas||{};
+    renderQuizResults(quizListas);
+    renderControlPanel();
   }catch(e){/* segue tentando no próximo ciclo */}
 }
 pollQuiz();
 setInterval(pollQuiz,2000);
+
+/* ===== painel de controle do quiz ao vivo (estilo Kahoot) ===== */
+let estadoQuiz={atual:-1,revelado:false};
+
+async function pollEstadoQuiz(){
+  try{
+    const r=await fetch('/api/quiz-estado?sala='+encodeURIComponent(SALA),{cache:'no-store'});
+    const j=await r.json();
+    estadoQuiz=j.estado||{atual:-1,revelado:false};
+    renderControlPanel();
+  }catch(e){/* segue tentando no próximo ciclo */}
+}
+pollEstadoQuiz();
+setInterval(pollEstadoQuiz,1500);
+
+function renderControlPanel(){
+  const elAg=document.getElementById('qcAguardando');
+  if(!elAg)return;
+  const elPg=document.getElementById('qcPergunta');
+  const elFim=document.getElementById('qcFim');
+  const liders=Object.keys(quizListas);
+  const qtdEl=document.getElementById('qtdQuiz');
+  if(qtdEl)qtdEl.textContent=liders.length;
+
+  const atual=estadoQuiz.atual;
+  elAg.style.display=atual===-1?'block':'none';
+  elPg.style.display=(atual>=0&&atual<5)?'block':'none';
+  elFim.style.display=atual>=5?'block':'none';
+  if(atual<0||atual>=5)return;
+
+  const qq=QUIZ_QUESTIONS[atual];
+  document.getElementById('qcNum').textContent='Pergunta '+(atual+1)+' de 5';
+  document.getElementById('qcQtext').textContent=qq.q;
+  const bars=document.getElementById('qcBars');
+  const respEl=document.getElementById('qcRespondidos');
+  const btn=document.getElementById('btnAcao');
+
+  if(!estadoQuiz.revelado){
+    const respondentes=liders.filter(l=>Number.isInteger(((quizListas[l]&&quizListas[l].respostas)||[])[atual])).length;
+    bars.innerHTML='';
+    respEl.textContent=respondentes+' de '+liders.length+' já responderam';
+    btn.textContent='🔍 Revelar resposta';
+  }else{
+    const counts=qq.opts.map(()=>0);
+    liders.forEach(l=>{
+      const r=(quizListas[l]&&quizListas[l].respostas)||[];
+      const v=r[atual];
+      if(Number.isInteger(v)&&counts[v]!==undefined)counts[v]++;
+    });
+    const total=counts.reduce((a,b)=>a+b,0)||1;
+    let html='';
+    qq.opts.forEach((opt,oi)=>{
+      const pct=Math.round(counts[oi]/total*100);
+      html+='<div class="res-opt'+(oi===qq.certa?' correct':'')+'"><div class="res-lbl">'+opt+'</div><div class="res-bar"><i style="width:'+pct+'%"></i></div><div class="res-ct">'+counts[oi]+'</div></div>';
+    });
+    bars.innerHTML=html;
+    respEl.textContent='Total: '+liders.length+' pessoa(s)';
+    btn.textContent=atual<4?'➡️ Próxima pergunta':'🏁 Ver resultado final';
+  }
+}
+
+async function setEstadoQuiz(payload){
+  try{
+    await fetch('/api/quiz-estado',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({sala:SALA},payload))});
+  }catch(e){/* ignora, o próximo poll corrige */}
+  pollEstadoQuiz();
+}
+
+document.getElementById('btnIniciar').onclick=()=>setEstadoQuiz({atual:0,revelado:false});
+document.getElementById('btnAcao').onclick=()=>{
+  if(!estadoQuiz.revelado)setEstadoQuiz({revelado:true});
+  else setEstadoQuiz({atual:estadoQuiz.atual+1,revelado:false});
+};
+document.getElementById('btnReiniciar').onclick=e=>{e.preventDefault();setEstadoQuiz({reiniciar:true});};
 </script>
 </body>
 </html>
