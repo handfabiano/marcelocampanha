@@ -81,6 +81,7 @@
   .cd .b{background:rgba(255,255,255,.08);border:2px solid rgba(255,201,0,.45);border-radius:18px;padding:clamp(12px,1.8vw,22px) clamp(14px,2.2vw,30px);text-align:center;min-width:clamp(76px,10vw,130px)}
   .cd .v{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(34px,6vw,72px);color:var(--gold);line-height:1}
   .cd .l{font-size:clamp(10px,1.1vw,13px);letter-spacing:.2em;text-transform:uppercase;color:#C9D6F2;font-weight:700;margin-top:8px}
+  .cd-label{margin-top:20px;font-size:clamp(12px,1.4vw,15px);font-weight:700;letter-spacing:.06em;color:var(--gold)}
   .alerta{margin-top:22px;background:rgba(255,201,0,.14);border-left:6px solid var(--gold);border-radius:12px;padding:16px 18px;font-size:clamp(14px,1.6vw,18px);color:#FFF3CC;line-height:1.5}
   .alerta b{color:var(--gold)}
 
@@ -274,11 +275,19 @@
       <div class="eyebrow">O relógio está correndo</div>
       <h2>16 de agosto: começa a propaganda oficial</h2>
       <p class="lead">No dia 16/08 abre o pedido de voto — e quem começar a montar rede nesse dia <b style="color:var(--gold)">já começa perdendo</b>. Nossa rede precisa estar completa, cadastrada e treinada ANTES da largada.</p>
+      <div class="cd-label">🏁 Início da propaganda oficial — 16 de agosto</div>
       <div class="cd" id="cd">
         <div class="b"><div class="v" id="cd-d">--</div><div class="l">dias</div></div>
         <div class="b"><div class="v" id="cd-h">--</div><div class="l">horas</div></div>
         <div class="b"><div class="v" id="cd-m">--</div><div class="l">minutos</div></div>
         <div class="b"><div class="v" id="cd-s">--</div><div class="l">segundos</div></div>
+      </div>
+      <div class="cd-label" style="margin-top:24px">🗳️ Dia da eleição — 4 de outubro</div>
+      <div class="cd" id="cdEleicao">
+        <div class="b"><div class="v" id="cde-d">--</div><div class="l">dias</div></div>
+        <div class="b"><div class="v" id="cde-h">--</div><div class="l">horas</div></div>
+        <div class="b"><div class="v" id="cde-m">--</div><div class="l">minutos</div></div>
+        <div class="b"><div class="v" id="cde-s">--</div><div class="l">segundos</div></div>
       </div>
       <div class="alerta"><b>Já estamos atrasados com equipe na rua.</b> Cada dia sem a rede completa e cadastrada é um dia de vantagem entregue de graça aos adversários. A missão começa hoje, saindo daqui — não no dia 16.</div>
     </div>
@@ -301,6 +310,28 @@
         </div>
       </div>
       <p class="lead" style="margin-top:20px;color:#F3E3BC"><b style="color:var(--gold)">Em resumo:</b> quem usufrui do projeto ajuda a sustentar o projeto. É assim que todo mundo segue ganhando.</p>
+    </div>
+  </section>
+
+  <!-- 3b COMO FUNCIONA A COORDENAÇÃO -->
+  <section class="slide light">
+    <div class="content">
+      <div class="eyebrow">Como funciona a coordenação</div>
+      <h2>Você não caminha sozinho: um Coordenador cuida de você</h2>
+      <p class="lead">A coordenação da rede sou eu, à frente de <b>12 Coordenadores de Líderes</b>. Cada líder da rede vai ter um desses coordenadores como ponto de apoio direto — ajudando a organizar o trabalho, tirando dúvidas e acompanhando de perto o seu dia a dia.</p>
+      <div class="grid2" style="margin-top:22px">
+        <div class="card" style="border:2px solid var(--gold);text-align:center">
+          <div class="tag">Coordenação geral</div>
+          <div class="num">1</div>
+          <h3>Coordenador Geral</h3>
+        </div>
+        <div class="card" style="text-align:center">
+          <div class="tag" style="background:var(--card);color:var(--navy);border:1.5px solid var(--navy)">Apoio direto aos líderes</div>
+          <div class="num">12</div>
+          <h3>Coordenadores de Líderes</h3>
+        </div>
+      </div>
+      <p class="lead" style="margin-top:20px"><b>Na prática:</b> é para o seu coordenador que você leva suas dúvidas e demandas do dia a dia — ele está aqui para ajudar você a cumprir sua meta.</p>
     </div>
   </section>
 
@@ -541,14 +572,19 @@ document.addEventListener('touchend',e=>{
 },{passive:true});
 go(0);
 
-/* contagem regressiva para 16/08/2026 (horário de Boa Vista, UTC-4) */
-const ALVO=new Date('2026-08-16T00:00:00-04:00').getTime();
-function tick(){
-  let d=ALVO-Date.now();
+/* contagens regressivas (horário de Boa Vista, UTC-4) */
+const ALVO_CAMPANHA=new Date('2026-08-16T00:00:00-04:00').getTime();
+const ALVO_ELEICAO=new Date('2026-10-04T00:00:00-04:00').getTime();
+function contar(alvo,prefixo){
+  let d=alvo-Date.now();
   if(d<0)d=0;
   const dias=Math.floor(d/864e5), h=Math.floor(d%864e5/36e5), m=Math.floor(d%36e5/6e4), s=Math.floor(d%6e4/1e3);
   const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=String(v).padStart(2,'0')};
-  set('cd-d',dias);set('cd-h',h);set('cd-m',m);set('cd-s',s);
+  set(prefixo+'-d',dias);set(prefixo+'-h',h);set(prefixo+'-m',m);set(prefixo+'-s',s);
+}
+function tick(){
+  contar(ALVO_CAMPANHA,'cd');
+  contar(ALVO_ELEICAO,'cde');
 }
 tick();setInterval(tick,1000);
 
