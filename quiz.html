@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Quiz Rápido — Rede Marcelo Nunes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#04327E; --navy2:#0C46A5; --navy3:#021D4D;
+    --gold:#FFC900; --gold-dark:#A87F00; --cyan:#00B1ED;
+    --ink:#132347; --gray:#4E5B77; --line:#D7DEEB;
+    --bg:#F1F5FB; --ok:#2C8A4B; --no:#B4382E;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Archivo',sans-serif;background:var(--bg);color:var(--ink);min-height:100dvh}
+  .hero{background:radial-gradient(600px 380px at 90% -20%, #0d4aa8 0%, var(--navy) 60%, var(--navy3) 130%);color:#fff;padding:26px 20px 74px;border-radius:0 0 28px 28px}
+  .hero .brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .hero .brand .chip{width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 40px}
+  .hero .brand img{width:24px}
+  .hero .brand span{font-size:12px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+  h1{font-family:'Fraunces',serif;font-weight:900;font-size:30px;line-height:1.08}
+  .hero p{margin-top:10px;font-size:14.5px;color:#C9D6F2;line-height:1.5}
+  .wrap{max-width:520px;margin:0 auto;padding:0 16px 60px}
+  .card{background:#fff;border-radius:18px;padding:18px;box-shadow:0 6px 24px rgba(2,29,77,.08);margin-top:-46px}
+  label{display:block;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);margin:14px 0 6px}
+  input[type=text]{width:100%;border:2px solid var(--line);border-radius:12px;padding:13px 14px;font-size:16px;font-family:'Archivo';color:var(--ink);background:#fff;transition:border .15s}
+  input[type=text]:focus{outline:none;border-color:var(--cyan)}
+  input[type=text]:disabled{background:var(--bg);color:var(--gray)}
+  .live{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12.5px;font-weight:600;color:var(--gray)}
+  .live i{width:9px;height:9px;border-radius:50%;background:#b9c3d8;display:inline-block}
+  .live.on i{background:var(--ok);animation:pulse 1.4s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .prog-card{position:sticky;top:0;z-index:20;background:#fff;border-radius:0 0 16px 16px;box-shadow:0 6px 18px rgba(2,29,77,.12);padding:12px 16px;margin:18px -16px 0;display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-weight:900;font-size:18px;color:var(--navy)}
+  .prog-card .dots{display:flex;gap:6px;margin-left:auto}
+  .prog-card .dots i{width:10px;height:10px;border-radius:50%;background:var(--line);display:inline-block}
+  .prog-card .dots i.past{background:var(--navy)}
+  .prog-card .dots i.now{background:var(--gold)}
+  .stage{margin-top:16px}
+  .wait-box{background:#fff;border-radius:16px;padding:32px 20px;text-align:center;box-shadow:0 3px 12px rgba(2,29,77,.06)}
+  .wait-box .big{font-size:38px;margin-bottom:10px}
+  .wait-box p{color:var(--gray);font-size:14.5px;line-height:1.5}
+  .q-block{background:#fff;border-radius:16px;padding:16px;box-shadow:0 3px 12px rgba(2,29,77,.06)}
+  .q-block h3{font-family:'Fraunces',serif;font-size:18px;font-weight:700;margin-bottom:14px;color:var(--ink);line-height:1.35}
+  .q-opts{display:flex;flex-direction:column;gap:10px}
+  .q-opts button{text-align:left;border:2px solid var(--line);background:#fff;color:var(--ink);font-family:'Archivo';font-weight:600;font-size:15px;padding:14px;border-radius:12px;cursor:pointer;transition:all .15s}
+  .q-opts button:disabled{cursor:default}
+  .q-opts button.right{background:#EDF6EF;border-color:var(--ok);color:#1d5c33}
+  .q-opts button.wrong{background:#FBEAEA;border-color:var(--no);color:#7a241d}
+  .feedback-box{border-radius:16px;padding:26px 20px;text-align:center;font-size:15px;line-height:1.5}
+  .feedback-box.ok{background:#EDF6EF;border:2px solid var(--ok);color:#1d5c33}
+  .feedback-box.no{background:#FBEAEA;border:2px solid var(--no);color:#7a241d}
+  .feedback-box .big{font-size:34px;margin-bottom:8px}
+  .actions{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+  button.act{font-family:'Archivo';font-weight:700;font-size:16px;border:none;border-radius:100px;padding:16px;cursor:pointer;transition:transform .1s;background:var(--navy);color:var(--gold)}
+  button.act:active{transform:scale(.98)}
+  .foot{margin-top:26px;text-align:center;font-size:12px;color:var(--gray);line-height:1.6}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="wrap" style="padding-bottom:0">
+    <div class="brand">
+      <div class="chip"><img src="iso.png" alt=""></div>
+      <span>Rede Marcelo Nunes • 2026</span>
+    </div>
+    <h1>Quiz Rápido</h1>
+    <p>Responda no seu ritmo? Não — aqui todo mundo responde <b style="color:var(--gold)">a mesma pergunta, ao mesmo tempo</b>, no comando do apresentador.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <label for="nome">Seu nome</label>
+    <input type="text" id="nome" placeholder="Como a coordenação te conhece" autocomplete="name">
+    <div class="live" id="live"><i></i><span id="livetxt">Digite seu nome para entrar</span></div>
+  </div>
+
+  <div class="prog-card" id="progCard">
+    <span id="progTxt">Aguardando</span>
+    <div class="dots" id="progDots"></div>
+  </div>
+
+  <div class="stage" id="stage"></div>
+
+  <p class="foot">Suas respostas aparecem ao vivo no telão.<br><b>Marcelo Nunes • Deputado Estadual • PDT</b></p>
+</div>
+
+<script>
+const SALA=new URLSearchParams(location.search).get('sala')||'treino';
+const KEY='quiz20:'+SALA;
+
+/* Perguntas — mesmo array usado em apresentacao.html para os resultados */
+const QUESTIONS=[
+  {q:'Qual é a meta de nomes que cada líder deve cadastrar na Fase 1?',opts:['10 nomes','20 nomes','50 nomes','200 nomes'],certa:1},
+  {q:'Quando começa oficialmente a propaganda eleitoral?',opts:['1º de agosto','16 de agosto','7 de setembro','15 de outubro'],certa:1},
+  {q:'Qual é a meta de votos da rede para eleger o Marcelo?',opts:['600 votos','6.000 votos','60.000 votos','600.000 votos'],certa:1},
+  {q:'Quais são as 3 entregas de cada líder?',opts:['Cadastrar, qualificar e engajar, visitas e reuniões','Só cadastrar nomes','Panfletagem, cartazes e vídeos','Pagar mensalidade, doar e indicar'],certa:0},
+  {q:'Qual o critério de qualidade da margem de segurança?',opts:['Quantidade de contatos (200+)','20 eleitores bem cuidados, com +70% de assertividade','Número de seguidores nas redes','Número de comícios'],certa:1},
+];
+
+let data=JSON.parse(localStorage.getItem(KEY)||'{}');
+let respostas=Array.isArray(data.respostas)?data.respostas.slice(0,5):[];
+while(respostas.length<5)respostas.push(null);
+let estado={atual:-1,revelado:false};
+let syncTimer=null;
+
+const nome=document.getElementById('nome');
+nome.value=data.nome||'';
+
+const dots=document.getElementById('progDots');
+for(let i=0;i<5;i++){const s=document.createElement('i');dots.appendChild(s)}
+
+function salvar(){
+  data={nome:nome.value,respostas};
+  try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}
+}
+
+function renderProgresso(){
+  const txt=document.getElementById('progTxt');
+  const ds=[...dots.children];
+  ds.forEach((d,i)=>d.className=i<estado.atual?'past':(i===estado.atual?'now':''));
+  if(estado.atual<0)txt.textContent='Aguardando';
+  else if(estado.atual>=5)txt.textContent='Encerrado';
+  else txt.textContent='Pergunta '+(estado.atual+1)+' de 5';
+}
+
+function renderStage(){
+  const stage=document.getElementById('stage');
+  renderProgresso();
+
+  if(!nome.value.trim()){
+    stage.innerHTML='<div class="wait-box"><div class="big">✋</div><p>Digite seu nome ali em cima para entrar no quiz.</p></div>';
+    return;
+  }
+
+  if(estado.atual===-1){
+    stage.innerHTML='<div class="wait-box"><div class="big">⏳</div><p>Tudo certo, <b>'+esc(nome.value.trim())+'</b>! Aguardando o apresentador iniciar o quiz…</p></div>';
+    return;
+  }
+
+  if(estado.atual>=5){
+    stage.innerHTML='<div class="wait-box"><div class="big">🎉</div><p><b>Quiz encerrado!</b><br>Confira o placar final no telão.</p><div class="actions"><button class="act" id="goDin">➡️ Ir para a Dinâmica dos 20</button></div></div>';
+    document.getElementById('goDin').onclick=irParaDinamica;
+    return;
+  }
+
+  const qi=estado.atual;
+  const qq=QUESTIONS[qi];
+  const respondida=respostas[qi]!==null;
+
+  if(!respondida&&!estado.revelado){
+    let html='<div class="q-block"><h3>'+(qi+1)+'. '+qq.q+'</h3><div class="q-opts" id="qOpts">';
+    qq.opts.forEach((opt,oi)=>{html+='<button type="button" data-oi="'+oi+'">'+opt+'</button>'});
+    html+='</div></div>';
+    stage.innerHTML=html;
+    document.getElementById('qOpts').addEventListener('click',e=>{
+      const btn=e.target.closest('button');
+      if(!btn)return;
+      respostas[qi]=+btn.dataset.oi;
+      salvar();
+      sync();
+      renderStage();
+    });
+    return;
+  }
+
+  if(!estado.revelado){
+    stage.innerHTML='<div class="wait-box"><div class="big">✅</div><p><b>Resposta enviada!</b><br>Aguarde a revelação no telão…</p></div>';
+    return;
+  }
+
+  // revelado
+  if(!respondida){
+    stage.innerHTML='<div class="feedback-box no"><div class="big">⌛</div><b>Tempo esgotado!</b><p style="margin-top:6px">A resposta certa era: <b>'+esc(qq.opts[qq.certa])+'</b></p></div>';
+    return;
+  }
+  const acertou=respostas[qi]===qq.certa;
+  if(acertou){
+    stage.innerHTML='<div class="feedback-box ok"><div class="big">✅</div><b>Você acertou!</b></div>';
+  }else{
+    stage.innerHTML='<div class="feedback-box no"><div class="big">❌</div><b>Você errou.</b><p style="margin-top:6px">A resposta certa era: <b>'+esc(qq.opts[qq.certa])+'</b></p></div>';
+  }
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+nome.addEventListener('input',()=>{salvar();sync();renderStage()});
+renderStage();
+
+/* ===== sincronização com o telão/apresentação (sem banco de dados) ===== */
+function agendarSync(){clearTimeout(syncTimer);syncTimer=setTimeout(sync,700)}
+async function sync(){
+  const lider=nome.value.trim();
+  const liveEl=document.getElementById('live'),liveTxt=document.getElementById('livetxt');
+  if(!lider){liveEl.classList.remove('on');liveTxt.textContent='Digite seu nome para entrar';return}
+  const payload=JSON.stringify({sala:SALA,lider,respostas});
+  try{
+    await fetch('/api/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:payload});
+    liveEl.classList.add('on');liveTxt.textContent='Conectado • sala: '+SALA;
+  }catch(e){
+    liveEl.classList.remove('on');liveTxt.textContent='Sem conexão — tentando de novo…';
+  }
+}
+setInterval(()=>{if(nome.value.trim())sync()},10000);
+
+/* ===== acompanha o estado do quiz definido pelo apresentador ===== */
+async function pollEstado(){
+  try{
+    const r=await fetch('/api/quiz-estado?sala='+encodeURIComponent(SALA),{cache:'no-store'});
+    const j=await r.json();
+    const novo=j.estado||{atual:-1,revelado:false};
+    if(novo.atual!==estado.atual||novo.revelado!==estado.revelado){
+      estado=novo;
+      renderStage();
+    }
+  }catch(e){/* tenta de novo no próximo ciclo */}
+}
+pollEstado();
+setInterval(pollEstado,1200);
+
+function irParaDinamica(){
+  location.href='index.html'+(SALA!=='treino'?('?sala='+encodeURIComponent(SALA)):'');
+}
+</script>
+</body>
+</html>
