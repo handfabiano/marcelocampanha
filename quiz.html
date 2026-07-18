@@ -52,6 +52,8 @@
   .feedback-box.ok{background:#EDF6EF;border:2px solid var(--ok);color:#1d5c33}
   .feedback-box.no{background:#FBEAEA;border:2px solid var(--no);color:#7a241d}
   .feedback-box .big{font-size:34px;margin-bottom:8px}
+  .acomp-eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-dark);margin-bottom:8px}
+  .acomp-titulo{font-family:'Fraunces',serif;font-weight:900;font-size:21px;color:var(--ink);line-height:1.3}
   .actions{margin-top:18px;display:flex;flex-direction:column;gap:10px}
   button.act{font-family:'Archivo';font-weight:700;font-size:16px;border:none;border-radius:100px;padding:16px;cursor:pointer;transition:transform .1s;background:var(--navy);color:var(--gold)}
   button.act:active{transform:scale(.98)}
@@ -65,8 +67,8 @@
       <div class="chip"><img src="iso.png" alt=""></div>
       <span>Rede Marcelo Nunes • 2026</span>
     </div>
-    <h1>Quiz Rápido</h1>
-    <p>Responda no seu ritmo? Não — aqui todo mundo responde <b style="color:var(--gold)">a mesma pergunta, ao mesmo tempo</b>, no comando do apresentador.</p>
+    <h1>Acompanhe ao vivo</h1>
+    <p>Seu celular acompanha a apresentação em tempo real — e quando chegar a hora do quiz, <b style="color:var(--gold)">todo mundo responde a mesma pergunta, ao mesmo tempo</b>, no comando do apresentador.</p>
   </div>
 </div>
 
@@ -105,6 +107,7 @@ let respostas=Array.isArray(data.respostas)?data.respostas.slice(0,5):[];
 while(respostas.length<5)respostas.push(null);
 let palavraEnviada=!!data.palavraEnviada;
 let estado={atual:-1,revelado:false};
+let apresentacaoEstado={slide:0,total:0,quizArea:false,eyebrow:'',titulo:''};
 let syncTimer=null;
 
 const nome=document.getElementById('nome');
@@ -120,6 +123,13 @@ function salvar(){
 
 function renderProgresso(){
   const txt=document.getElementById('progTxt');
+  if(!apresentacaoEstado.quizArea){
+    dots.style.display='none';
+    const totalTxt=apresentacaoEstado.total?(' de '+apresentacaoEstado.total):'';
+    txt.textContent='Slide '+(apresentacaoEstado.slide+1)+totalTxt;
+    return;
+  }
+  dots.style.display='flex';
   const ds=[...dots.children];
   ds.forEach((d,i)=>d.className=i<estado.atual?'past':(i===estado.atual?'now':''));
   if(estado.atual<0)txt.textContent='Aguardando';
@@ -133,6 +143,14 @@ function renderStage(){
 
   if(!nome.value.trim()){
     stage.innerHTML='<div class="wait-box"><div class="big">✋</div><p>Digite seu nome ali em cima para entrar no quiz.</p></div>';
+    return;
+  }
+
+  if(!apresentacaoEstado.quizArea){
+    stage.innerHTML='<div class="wait-box">'+
+      (apresentacaoEstado.eyebrow?'<div class="acomp-eyebrow">'+esc(apresentacaoEstado.eyebrow)+'</div>':'')+
+      '<div class="acomp-titulo">'+esc(apresentacaoEstado.titulo||'Acompanhando a apresentação…')+'</div>'+
+      '</div>';
     return;
   }
 
@@ -227,6 +245,20 @@ async function pollEstado(){
 }
 pollEstado();
 setInterval(pollEstado,1200);
+
+/* ===== acompanha qual slide da apresentação está ativo agora ===== */
+async function pollApresentacao(){
+  try{
+    const r=await fetch('/api/apresentacao-estado?sala='+encodeURIComponent(SALA),{cache:'no-store'});
+    const j=await r.json();
+    const novo=j.estado||{slide:0,total:0,quizArea:false,eyebrow:'',titulo:''};
+    const mudou=novo.slide!==apresentacaoEstado.slide||novo.quizArea!==apresentacaoEstado.quizArea||novo.eyebrow!==apresentacaoEstado.eyebrow||novo.titulo!==apresentacaoEstado.titulo||novo.total!==apresentacaoEstado.total;
+    apresentacaoEstado=novo;
+    if(mudou)renderStage();
+  }catch(e){/* tenta de novo no próximo ciclo */}
+}
+pollApresentacao();
+setInterval(pollApresentacao,1200);
 
 function irParaDinamica(){
   location.href='dinamica.html'+(SALA!=='treino'?('?sala='+encodeURIComponent(SALA)):'');
