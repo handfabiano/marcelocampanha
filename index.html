@@ -210,6 +210,21 @@
   /* nuvem de palavras */
   .nuvem-wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px 20px;margin-top:28px;min-height:180px}
   .nuvem-word{font-family:'Fraunces',serif;font-weight:900;line-height:1;opacity:.92}
+
+  /* árvore de hierarquia (coordenação) */
+  .org-chart{display:flex;flex-direction:column;align-items:center;margin-top:26px}
+  .org-node{border-radius:16px;padding:clamp(14px,2vw,20px) clamp(20px,3vw,32px);text-align:center;box-shadow:0 6px 20px rgba(2,29,77,.1);animation:orgIn .5s ease both}
+  .org-node-top{background:#fff;border:2px solid var(--gold);width:min(240px,82%)}
+  .org-node-mid{background:#fff;border:2px solid var(--navy);width:min(360px,92%);animation-delay:.15s}
+  .org-node-base{background:var(--navy);width:100%;animation-delay:.3s}
+  .org-emoji{font-size:clamp(22px,3vw,30px);margin-bottom:2px}
+  .org-title{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(17px,2.1vw,24px);color:var(--navy)}
+  .org-node-base .org-title{color:#fff}
+  .org-sub{font-size:clamp(12px,1.4vw,14px);color:var(--gray);font-weight:600;margin-top:2px}
+  .org-node-base .org-sub{color:#C9D6F2}
+  .org-link{width:2px;height:28px;background:var(--line);position:relative}
+  .org-link::after{content:'▾';position:absolute;bottom:-15px;left:50%;transform:translateX(-50%);color:var(--gold-dark);font-size:15px;line-height:1}
+  @keyframes orgIn{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}
   @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -319,19 +334,26 @@
       <div class="eyebrow">Como funciona a coordenação</div>
       <h2>Você não caminha sozinho: um Coordenador cuida de você</h2>
       <p class="lead">A coordenação da rede sou eu, à frente de <b>12 Coordenadores de Líderes</b>. Cada líder da rede vai ter um desses coordenadores como ponto de apoio direto — ajudando a organizar o trabalho, tirando dúvidas e acompanhando de perto o seu dia a dia.</p>
-      <div class="grid2" style="margin-top:22px">
-        <div class="card" style="border:2px solid var(--gold);text-align:center">
-          <div class="tag">Coordenação geral</div>
-          <div class="num">1</div>
-          <h3>Coordenador Geral</h3>
+      <div class="org-chart">
+        <div class="org-node org-node-top">
+          <div class="org-emoji">🎖️</div>
+          <div class="org-title">Você</div>
+          <div class="org-sub">Coordenador Geral</div>
         </div>
-        <div class="card" style="text-align:center">
-          <div class="tag" style="background:var(--card);color:var(--navy);border:1.5px solid var(--navy)">Apoio direto aos líderes</div>
-          <div class="num">12</div>
-          <h3>Coordenadores de Líderes</h3>
+        <div class="org-link"></div>
+        <div class="org-node org-node-mid">
+          <div class="org-emoji">🧭</div>
+          <div class="org-title">12 Coordenadores</div>
+          <div class="org-sub">de Líderes</div>
+        </div>
+        <div class="org-link"></div>
+        <div class="org-node org-node-base">
+          <div class="org-emoji">🤝</div>
+          <div class="org-title">200 Líderes</div>
+          <div class="org-sub">da rede — cerca de 17 por coordenador</div>
         </div>
       </div>
-      <p class="lead" style="margin-top:20px"><b>Na prática:</b> é para o seu coordenador que você leva suas dúvidas e demandas do dia a dia — ele está aqui para ajudar você a cumprir sua meta.</p>
+      <p class="lead" style="margin-top:24px"><b>Na prática:</b> é para o seu coordenador que você leva suas dúvidas e demandas do dia a dia — ele está aqui para ajudar você a cumprir sua meta.</p>
     </div>
   </section>
 
