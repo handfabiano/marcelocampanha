@@ -79,7 +79,7 @@
 const N=20;
 const SALA=new URLSearchParams(location.search).get('sala')||'treino';
 document.getElementById('salatxt').textContent='Sala: '+SALA+' • Rede Marcelo Nunes • 2026';
-document.getElementById('urltxt').textContent=location.origin+(SALA!=='treino'?'/?sala='+SALA:'');
+document.getElementById('urltxt').textContent=location.origin+'/dinamica.html'+(SALA!=='treino'?'?sala='+SALA:'');
 
 /* estado acumulado no cliente: mesmo que a memória do servidor reinicie,
    o que já apareceu no telão permanece */

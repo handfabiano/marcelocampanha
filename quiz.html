@@ -91,7 +91,7 @@
 const SALA=new URLSearchParams(location.search).get('sala')||'treino';
 const KEY='quiz20:'+SALA;
 
-/* Perguntas — mesmo array usado em apresentacao.html para os resultados */
+/* Perguntas — mesmo array usado em index.html (a apresentação) para os resultados */
 const QUESTIONS=[
   {q:'Qual é a meta de nomes que cada líder deve cadastrar na Fase 1?',opts:['10 nomes','20 nomes','50 nomes','200 nomes'],certa:1},
   {q:'Quando começa oficialmente a propaganda eleitoral?',opts:['1º de agosto','16 de agosto','7 de setembro','15 de outubro'],certa:1},
@@ -221,7 +221,7 @@ pollEstado();
 setInterval(pollEstado,1200);
 
 function irParaDinamica(){
-  location.href='index.html'+(SALA!=='treino'?('?sala='+encodeURIComponent(SALA)):'');
+  location.href='dinamica.html'+(SALA!=='treino'?('?sala='+encodeURIComponent(SALA)):'');
 }
 </script>
 </body>
