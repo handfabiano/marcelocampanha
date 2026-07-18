@@ -45,6 +45,9 @@
   .status i{width:10px;height:10px;border-radius:50%;background:#e74c3c;display:inline-block}
   .status.on i{background:var(--ok);animation:pulse 1.4s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .toast{position:fixed;top:120px;left:50%;transform:translateX(-50%) translateY(-30px);opacity:0;background:#fff;color:var(--navy);font-family:'Fraunces',serif;font-weight:700;font-size:clamp(15px,1.8vw,20px);padding:14px 28px;border-radius:100px;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:opacity .35s ease,transform .35s ease;z-index:80;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast b{color:var(--gold-dark,#A87F00)}
 </style>
 </head>
 <body>
@@ -74,6 +77,8 @@
   <div>Participe: <span class="link" id="urltxt"></span></div>
   <div class="status" id="st"><i></i><span id="sttxt">conectando…</span></div>
 </footer>
+
+<div class="toast" id="toast"></div>
 
 <script>
 const N=20;
@@ -111,12 +116,33 @@ function render(){
   document.getElementById('tDone').textContent=tD;
 }
 
+/* ===== saudação ao vivo para quem acabou de entrar ===== */
+const filaToast=[];
+let mostrandoToast=false;
+function anunciar(lider){
+  filaToast.push(lider);
+  processarFilaToast();
+}
+function processarFilaToast(){
+  if(mostrandoToast||!filaToast.length)return;
+  mostrandoToast=true;
+  const lider=filaToast.shift();
+  const toast=document.getElementById('toast');
+  toast.innerHTML='👋 <b>'+esc(lider)+'</b> chegou na sala!';
+  toast.classList.add('show');
+  setTimeout(()=>{
+    toast.classList.remove('show');
+    setTimeout(()=>{mostrandoToast=false;processarFilaToast()},400);
+  },2600);
+}
+
 async function poll(){
   const st=document.getElementById('st'),sttxt=document.getElementById('sttxt');
   try{
     const r=await fetch('/api/dinamica?sala='+encodeURIComponent(SALA),{cache:'no-store'});
     const j=await r.json();
     for(const [lider,info] of Object.entries(j.listas||{})){
+      if(!estado[lider])anunciar(lider);
       estado[lider]={nomes:info.nomes||[]};
     }
     render();

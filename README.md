@@ -10,8 +10,9 @@ Material de treinamento da rede de líderes: uma apresentação interativa de 13
 | Quiz | `/quiz.html` | Cada participante escaneia o QR, digita o nome e espera o apresentador liberar cada pergunta — responde, aguarda a revelação e vê se acertou, uma pergunta de cada vez |
 | Participante (Dinâmica) | `/dinamica.html` | Cada líder abre no celular, digita o nome e preenche os 20 nomes |
 | Telão | `/telao.html` | Projetada na TV/projetor — mostra os cards de cada líder com barra de progresso, contadores gerais e celebração ao completar 20/20 |
-| API do quiz (respostas) | `/api/quiz` | Armazenamento em memória das respostas de cada participante (sem banco de dados) |
-| API do quiz (estado) | `/api/quiz-estado` | Guarda qual pergunta está liberada e se a resposta já foi revelada — é o que sincroniza o celular de todo mundo com o comando do apresentador |
+| API do quiz (respostas) | `/api/quiz` | Armazenamento em memória das respostas de cada participante, com o horário de cada resposta (pro ranking de velocidade) |
+| API do quiz (estado) | `/api/quiz-estado` | Guarda qual pergunta está liberada, se a resposta já foi revelada e quando cada pergunta foi liberada — sincroniza o celular de todo mundo com o comando do apresentador |
+| API da nuvem de palavras | `/api/nuvem` | Armazenamento em memória da palavra bônus de cada participante |
 | API da dinâmica | `/api/dinamica` | Armazenamento em memória das listas dos 20 (sem banco de dados) |
 
 A apresentação (`index.html`) é a página inicial pra ter um único link pra mandar pra todo mundo: abre nos slides, termina no quiz e na Dinâmica dos 20.
@@ -28,6 +29,13 @@ No slide "Quiz ao vivo" da apresentação:
 O link "↺ reiniciar quiz" no rodapé do slide zera o estado — útil pra ensaiar antes do evento.
 
 As 5 perguntas ficam no topo do `<script>` de `quiz.html` (array `QUESTIONS`) e são espelhadas em `index.html` (array `QUIZ_QUESTIONS`) para rotular os resultados — para trocar as perguntas, edite os dois arquivos juntos, na mesma ordem.
+
+### Ranking, saudação e nuvem de palavras
+
+- **Ranking por pergunta**: ao revelar uma resposta, aparecem os 3 primeiros que acertaram mais rápido (tempo contado a partir do momento em que a pergunta foi liberada, medido pelo servidor — não depende do relógio do celular).
+- **Ranking geral**: no slide "Resumo final do quiz", um placar com todo mundo ordenado por acertos e, em caso de empate, por tempo total de resposta.
+- **Saudação ao entrar**: assim que um nome novo aparece no quiz ou na Dinâmica dos 20, um aviso ("👋 Fulano entrou…") pisca por alguns segundos no telão/apresentação.
+- **Nuvem de palavras**: bônus ao final do quiz — antes de seguir pra Dinâmica dos 20, cada participante manda uma palavra curta (até 24 caracteres) respondendo "por que você está nessa rede?". A última tela da apresentação mostra todas as palavras juntas, com as mais repetidas maiores.
 
 ## Sem banco de dados
 

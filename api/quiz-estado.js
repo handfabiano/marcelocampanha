@@ -4,11 +4,14 @@
 // celulares dos participantes só leem esse estado para saber o que mostrar.
 //
 // atual: -1 = quiz não iniciado | 0..4 = índice da pergunta ativa | 5 = quiz encerrado
+// desdePorPergunta: instante (server-side) em que CADA pergunta foi liberada
+// pela primeira vez — junto com "tempos" de api/quiz.js, dá o tempo de
+// resposta de cada pergunta, usado no ranking de quem respondeu mais rápido.
 
 const store = (globalThis.__QUIZ20_ESTADO__ = globalThis.__QUIZ20_ESTADO__ || {});
 
 function padrao() {
-  return { atual: -1, revelado: false };
+  return { atual: -1, revelado: false, atualDesde: null, desdePorPergunta: [null, null, null, null, null] };
 }
 
 export default function handler(req, res) {
@@ -26,7 +29,17 @@ export default function handler(req, res) {
       store[sala] = padrao();
       return res.status(200).json({ ok: true, estado: store[sala] });
     }
-    if (Number.isInteger(atual)) cur.atual = Math.max(-1, Math.min(5, atual));
+    if (Number.isInteger(atual)) {
+      const novo = Math.max(-1, Math.min(5, atual));
+      if (novo !== cur.atual) {
+        cur.atualDesde = Date.now();
+        if (!cur.desdePorPergunta) cur.desdePorPergunta = [null, null, null, null, null];
+        if (novo >= 0 && novo < 5 && cur.desdePorPergunta[novo] == null) {
+          cur.desdePorPergunta[novo] = cur.atualDesde;
+        }
+      }
+      cur.atual = novo;
+    }
     if (typeof revelado === 'boolean') cur.revelado = revelado;
     store[sala] = cur;
     return res.status(200).json({ ok: true, estado: cur });

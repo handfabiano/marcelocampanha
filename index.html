@@ -190,6 +190,25 @@
   .qc-reset{margin-top:26px}
   .qc-reset a{color:#7d8bab;font-size:12px;text-decoration:none}
   .qc-reset a:hover{color:#C9D3E8}
+
+  /* ranking (perguntas mais rápidas + geral) */
+  .rank-list{display:flex;flex-direction:column;gap:8px;margin:18px auto 0;max-width:520px;text-align:left}
+  .rank-item{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.07);border-radius:12px;padding:10px 16px}
+  .rank-item .pos{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(16px,2vw,20px);color:var(--gold);flex:0 0 26px}
+  .rank-item:nth-child(1) .pos{color:#FFD700}
+  .rank-item:nth-child(2) .pos{color:#D7DEEB}
+  .rank-item:nth-child(3) .pos{color:#CD7F32}
+  .rank-item .nome{flex:1;font-weight:700;font-size:clamp(13px,1.5vw,16px);color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rank-item .info{font-size:clamp(11px,1.3vw,13px);color:#C9D3E8}
+
+  /* toast de boas-vindas */
+  .toast-in{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-30px);opacity:0;background:#fff;color:var(--navy);font-family:'Fraunces',serif;font-weight:700;font-size:clamp(15px,1.8vw,20px);padding:14px 28px;border-radius:100px;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:opacity .35s ease,transform .35s ease;z-index:80;pointer-events:none}
+  .toast-in.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast-in b{color:var(--gold-dark,#A87F00)}
+
+  /* nuvem de palavras */
+  .nuvem-wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px 20px;margin-top:28px;min-height:180px}
+  .nuvem-word{font-family:'Fraunces',serif;font-weight:900;line-height:1;opacity:.92}
   @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -411,6 +430,7 @@
         <div class="qc-num" id="qcNum">Pergunta 1 de 5</div>
         <div class="qc-qtext" id="qcQtext"></div>
         <div class="res-list" id="qcBars"></div>
+        <div class="rank-list" id="qcRanking"></div>
         <div class="qr-live" id="qcRespondidos"></div>
         <button type="button" class="qc-btn" id="btnAcao">🔍 Revelar resposta</button>
       </div>
@@ -460,14 +480,28 @@
     <div class="content">
       <div class="eyebrow">Tela de respostas</div>
       <h2>Resumo final do quiz</h2>
-      <div class="res-list" id="resList"></div>
+      <div class="qc-num" style="margin-bottom:4px">🏆 Ranking geral</div>
+      <div class="rank-list" id="resRanking"></div>
+      <div class="res-list" id="resList" style="margin-top:26px"></div>
       <div class="res-total">Total de participantes: <b id="resTotal">0</b></div>
+    </div>
+  </section>
+
+  <!-- 12 NUVEM DE PALAVRAS -->
+  <section class="slide dark">
+    <div class="content" style="text-align:center">
+      <div class="eyebrow">Bônus • ao vivo</div>
+      <h2>Numa palavra, por que você está nessa rede?</h2>
+      <p class="lead" style="margin:0 auto">Cada participante manda uma palavra ao final do quiz — quanto mais repetida, maior ela aparece aqui.</p>
+      <div class="nuvem-wrap" id="nuvemBox"></div>
+      <div class="qr-live">Palavras recebidas: <b id="nuvemQtd">0</b></div>
     </div>
   </section>
 
 </div>
 
 <div class="brandchip" aria-hidden="true"><img src="iso.png" alt=""></div>
+<div class="toast-in" id="toastIn"></div>
 
 <div class="dots" id="dots"></div>
 <div class="counter" id="ctr">1 / 10</div>
@@ -578,6 +612,26 @@ const QUIZ_QUESTIONS=[
 
 function qrImg(url){return 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&data='+encodeURIComponent(url)}
 function semProtocolo(url){return url.replace(/^https?:\/\//,'')}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+/* ===== saudação ao vivo para quem acabou de entrar no quiz ===== */
+const quizConhecidos=new Set();
+const filaToastQuiz=[];
+let mostrandoToastQuiz=false;
+function anunciarQuiz(lider){filaToastQuiz.push(lider);processarFilaToastQuiz()}
+function processarFilaToastQuiz(){
+  if(mostrandoToastQuiz||!filaToastQuiz.length)return;
+  mostrandoToastQuiz=true;
+  const lider=filaToastQuiz.shift();
+  const toast=document.getElementById('toastIn');
+  if(!toast){mostrandoToastQuiz=false;return}
+  toast.innerHTML='👋 <b>'+esc(lider)+'</b> entrou no quiz!';
+  toast.classList.add('show');
+  setTimeout(()=>{
+    toast.classList.remove('show');
+    setTimeout(()=>{mostrandoToastQuiz=false;processarFilaToastQuiz()},400);
+  },2600);
+}
 
 const salaQS=SALA!=='treino'?('?sala='+encodeURIComponent(SALA)):'';
 const urlQuiz=location.origin+'/quiz.html'+salaQS;
@@ -621,27 +675,75 @@ async function pollQuiz(){
   try{
     const r=await fetch('/api/quiz?sala='+encodeURIComponent(SALA),{cache:'no-store'});
     const j=await r.json();
-    quizListas=j.listas||{};
+    const novasListas=j.listas||{};
+    Object.keys(novasListas).forEach(lider=>{
+      if(!quizConhecidos.has(lider)){quizConhecidos.add(lider);anunciarQuiz(lider)}
+    });
+    quizListas=novasListas;
     renderQuizResults(quizListas);
     renderControlPanel();
+    renderRankingGeral();
   }catch(e){/* segue tentando no próximo ciclo */}
 }
 pollQuiz();
 setInterval(pollQuiz,2000);
 
 /* ===== painel de controle do quiz ao vivo (estilo Kahoot) ===== */
-let estadoQuiz={atual:-1,revelado:false};
+let estadoQuiz={atual:-1,revelado:false,desdePorPergunta:[null,null,null,null,null]};
 
 async function pollEstadoQuiz(){
   try{
     const r=await fetch('/api/quiz-estado?sala='+encodeURIComponent(SALA),{cache:'no-store'});
     const j=await r.json();
-    estadoQuiz=j.estado||{atual:-1,revelado:false};
+    estadoQuiz=j.estado||{atual:-1,revelado:false,desdePorPergunta:[null,null,null,null,null]};
     renderControlPanel();
+    renderRankingGeral();
   }catch(e){/* segue tentando no próximo ciclo */}
 }
 pollEstadoQuiz();
 setInterval(pollEstadoQuiz,1500);
+
+/* ranking de quem respondeu certo mais rápido (por pergunta e geral) */
+function tempoRespostaMs(lider,qi){
+  const info=quizListas[lider];
+  const desde=estadoQuiz.desdePorPergunta&&estadoQuiz.desdePorPergunta[qi];
+  const tempo=info&&info.tempos&&info.tempos[qi];
+  if(!desde||!Number.isInteger(tempo))return null;
+  return Math.max(0,tempo-desde);
+}
+function renderRankingPergunta(qi){
+  const el=document.getElementById('qcRanking');
+  if(!el)return;
+  const certa=QUIZ_QUESTIONS[qi].certa;
+  const linhas=Object.keys(quizListas)
+    .filter(l=>(quizListas[l].respostas||[])[qi]===certa)
+    .map(l=>({lider:l,ms:tempoRespostaMs(l,qi)}))
+    .filter(r=>r.ms!==null)
+    .sort((a,b)=>a.ms-b.ms)
+    .slice(0,3);
+  if(!linhas.length){el.innerHTML='<div class="rank-item"><div class="info">Ninguém acertou essa ainda…</div></div>';return}
+  el.innerHTML=linhas.map((r,i)=>
+    '<div class="rank-item"><div class="pos">'+(i+1)+'º</div><div class="nome">'+esc(r.lider)+'</div><div class="info">'+(r.ms/1000).toFixed(1)+'s</div></div>'
+  ).join('');
+}
+function renderRankingGeral(){
+  const el=document.getElementById('resRanking');
+  if(!el)return;
+  const linhas=Object.keys(quizListas).map(lider=>{
+    let acertos=0,tempoTotal=0;
+    QUIZ_QUESTIONS.forEach((qq,i)=>{
+      const resp=(quizListas[lider].respostas||[])[i];
+      if(resp===qq.certa)acertos++;
+      const ms=tempoRespostaMs(lider,i);
+      if(ms!==null)tempoTotal+=ms;
+    });
+    return {lider,acertos,tempoTotal};
+  }).sort((a,b)=>b.acertos-a.acertos||a.tempoTotal-b.tempoTotal).slice(0,5);
+  if(!linhas.length){el.innerHTML='<div class="rank-item"><div class="info">Aguardando respostas…</div></div>';return}
+  el.innerHTML=linhas.map((r,i)=>
+    '<div class="rank-item"><div class="pos">'+(i+1)+'º</div><div class="nome">'+esc(r.lider)+'</div><div class="info">'+r.acertos+'/5 • '+(r.tempoTotal/1000).toFixed(1)+'s</div></div>'
+  ).join('');
+}
 
 function renderControlPanel(){
   const elAg=document.getElementById('qcAguardando');
@@ -665,9 +767,11 @@ function renderControlPanel(){
   const respEl=document.getElementById('qcRespondidos');
   const btn=document.getElementById('btnAcao');
 
+  const rankEl=document.getElementById('qcRanking');
   if(!estadoQuiz.revelado){
     const respondentes=liders.filter(l=>Number.isInteger(((quizListas[l]&&quizListas[l].respostas)||[])[atual])).length;
     bars.innerHTML='';
+    if(rankEl)rankEl.innerHTML='';
     respEl.textContent=respondentes+' de '+liders.length+' já responderam';
     btn.textContent='🔍 Revelar resposta';
   }else{
@@ -684,6 +788,7 @@ function renderControlPanel(){
       html+='<div class="res-opt'+(oi===qq.certa?' correct':'')+'"><div class="res-lbl">'+opt+'</div><div class="res-bar"><i style="width:'+pct+'%"></i></div><div class="res-ct">'+counts[oi]+'</div></div>';
     });
     bars.innerHTML=html;
+    renderRankingPergunta(atual);
     respEl.textContent='Total: '+liders.length+' pessoa(s)';
     btn.textContent=atual<4?'➡️ Próxima pergunta':'🏁 Ver resultado final';
   }
@@ -702,6 +807,46 @@ document.getElementById('btnAcao').onclick=()=>{
   else setEstadoQuiz({atual:estadoQuiz.atual+1,revelado:false});
 };
 document.getElementById('btnReiniciar').onclick=e=>{e.preventDefault();setEstadoQuiz({reiniciar:true});};
+
+/* ===== nuvem de palavras (bônus, ao vivo) ===== */
+const NUVEM_CORES=['#FFC900','#00B1ED','#ffffff','#7ee8c7','#ff9f6b'];
+function renderNuvem(listas){
+  const box=document.getElementById('nuvemBox');
+  if(!box)return;
+  const qtdEl=document.getElementById('nuvemQtd');
+  const palavras=Object.values(listas).map(v=>(v.palavra||'').trim()).filter(Boolean);
+  if(qtdEl)qtdEl.textContent=palavras.length;
+  if(!palavras.length){
+    box.innerHTML='<p class="lead" style="margin:0 auto">Aguardando as primeiras palavras…</p>';
+    return;
+  }
+  const contagem={};
+  palavras.forEach(p=>{
+    const chave=p.toLowerCase();
+    contagem[chave]=(contagem[chave]||0)+1;
+  });
+  const entradas=Object.entries(contagem).sort((a,b)=>b[1]-a[1]);
+  const max=entradas[0][1];
+  box.innerHTML='';
+  entradas.forEach(([palavra,ct],i)=>{
+    const tam=Math.round(16+(ct/max)*46);
+    const span=document.createElement('span');
+    span.className='nuvem-word';
+    span.style.fontSize=tam+'px';
+    span.style.color=NUVEM_CORES[i%NUVEM_CORES.length];
+    span.textContent=palavra;
+    box.appendChild(span);
+  });
+}
+async function pollNuvem(){
+  try{
+    const r=await fetch('/api/nuvem?sala='+encodeURIComponent(SALA),{cache:'no-store'});
+    const j=await r.json();
+    renderNuvem(j.listas||{});
+  }catch(e){/* segue tentando no próximo ciclo */}
+}
+pollNuvem();
+setInterval(pollNuvem,2500);
 </script>
 </body>
 </html>
