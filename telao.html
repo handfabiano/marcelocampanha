@@ -95,7 +95,7 @@ function render(){
   nomes.forEach(lider=>{
     const q=estado[lider].nomes.length;
     tN+=q; if(q>=N)tD++;
-    let card=document.getElementById('c-'+CSS.escape(lider));
+    let card=document.getElementById('c-'+lider);
     if(!card){
       card=document.createElement('div');card.className='p';card.id='c-'+lider;
       card.innerHTML='<div class="top"><div class="nm"></div><div class="ct"></div></div><div class="pb"><i></i></div><div class="badge">🎉 Margem de segurança completa!</div>';
