@@ -103,6 +103,7 @@ const QUESTIONS=[
 let data=JSON.parse(localStorage.getItem(KEY)||'{}');
 let respostas=Array.isArray(data.respostas)?data.respostas.slice(0,5):[];
 while(respostas.length<5)respostas.push(null);
+let palavraEnviada=!!data.palavraEnviada;
 let estado={atual:-1,revelado:false};
 let syncTimer=null;
 
@@ -113,7 +114,7 @@ const dots=document.getElementById('progDots');
 for(let i=0;i<5;i++){const s=document.createElement('i');dots.appendChild(s)}
 
 function salvar(){
-  data={nome:nome.value,respostas};
+  data={nome:nome.value,respostas,palavraEnviada};
   try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){}
 }
 
@@ -141,6 +142,13 @@ function renderStage(){
   }
 
   if(estado.atual>=5){
+    if(!palavraEnviada){
+      stage.innerHTML='<div class="q-block"><h3>🎁 Bônus — numa palavra só</h3><p style="color:var(--gray);font-size:14px;margin-bottom:12px;line-height:1.5">Por que você está nessa rede? Sua palavra entra na nuvem ao vivo do telão.</p><input type="text" id="palavraInput" placeholder="Ex: família, mudança, oportunidade…" maxlength="24"><button type="button" class="act" id="btnPalavra" style="margin-top:12px;width:100%">Enviar palavra</button></div>';
+      const input=document.getElementById('palavraInput');
+      document.getElementById('btnPalavra').onclick=()=>enviarPalavra(input.value);
+      input.addEventListener('keydown',e=>{if(e.key==='Enter')enviarPalavra(input.value)});
+      return;
+    }
     stage.innerHTML='<div class="wait-box"><div class="big">🎉</div><p><b>Quiz encerrado!</b><br>Confira o placar final no telão.</p><div class="actions"><button class="act" id="goDin">➡️ Ir para a Dinâmica dos 20</button></div></div>';
     document.getElementById('goDin').onclick=irParaDinamica;
     return;
@@ -222,6 +230,18 @@ setInterval(pollEstado,1200);
 
 function irParaDinamica(){
   location.href='dinamica.html'+(SALA!=='treino'?('?sala='+encodeURIComponent(SALA)):'');
+}
+
+async function enviarPalavra(valor){
+  const palavra=(valor||'').trim();
+  if(!palavra)return;
+  const lider=nome.value.trim();
+  try{
+    await fetch('/api/nuvem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sala:SALA,lider,palavra})});
+  }catch(e){/* segue mesmo assim, o quiz não depende disso */}
+  palavraEnviada=true;
+  salvar();
+  renderStage();
 }
 </script>
 </body>
