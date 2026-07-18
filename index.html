@@ -31,6 +31,13 @@
   .cover-logo{width:min(320px,64%);height:auto;margin-bottom:26px}
   .cover-photo img{width:100%;height:min(76vh,640px);object-fit:cover;object-position:top;border-radius:24px;box-shadow:0 18px 50px rgba(2,29,77,.28);border:5px solid #fff;outline:3px solid var(--gold)}
   .light .hint{background:var(--card);border-color:var(--line);color:var(--gray)}
+  .qr-chip{margin-top:18px;display:inline-flex;align-items:center;gap:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:8px 20px 8px 8px}
+  .qr-chip img{width:64px;height:64px;background:#fff;border-radius:10px;padding:4px;display:block}
+  .qr-chip-txt b{display:block;font-size:13px;color:#fff}
+  .qr-chip-txt span{display:block;font-size:11px;color:#C9D3E8;word-break:break-all;margin-top:2px}
+  .light .qr-chip{background:var(--card);border-color:var(--line)}
+  .light .qr-chip-txt b{color:var(--navy)}
+  .light .qr-chip-txt span{color:var(--gray)}
   .light .hint b{color:var(--gold-dark)}
   .logo-panel{display:inline-block;background:#fff;border-radius:18px;padding:16px 28px;margin-top:28px;box-shadow:0 8px 28px rgba(0,0,0,.28)}
   .logo-panel img{height:clamp(64px,11vh,96px);width:auto;display:block}
@@ -241,6 +248,13 @@
         <h1>Juntos, a gente<br>elege o Marcelo.</h1>
         <p class="lead" style="margin-top:16px">Campanha Marcelo Nunes — Deputado Estadual • PDT • Roraima</p>
         <div class="hint">Use as setas <b>← →</b> do teclado, deslize na tela ou toque nos botões para navegar</div>
+        <div class="qr-chip">
+          <img id="qrCapa" alt="QR Code para acompanhar no celular">
+          <div class="qr-chip-txt">
+            <b>📱 Acompanhe pelo celular</b>
+            <span id="qrCapaUrl"></span>
+          </div>
+        </div>
         <div class="cover-foot" style="color:var(--gray)">Encontro de alinhamento da rede • Boa Vista – RR</div>
       </div>
       <div class="cover-photo"><img src="assets/foto-candidato.jpg" alt="Marcelo Nunes"></div>
@@ -464,7 +478,7 @@
   </section>
 
   <!-- 8 QUIZ AO VIVO (controlado pelo apresentador) -->
-  <section class="slide dark">
+  <section class="slide dark" data-quiz-area="1">
     <div class="content" style="text-align:center">
       <div class="eyebrow">Vamos testar? • interativo</div>
       <h2>Quiz ao vivo</h2>
@@ -529,7 +543,7 @@
   </section>
 
   <!-- 11 RESUMO FINAL DO QUIZ -->
-  <section class="slide dark">
+  <section class="slide dark" data-quiz-area="1">
     <div class="content">
       <div class="eyebrow">Tela de respostas</div>
       <h2>Resumo final do quiz</h2>
@@ -541,7 +555,7 @@
   </section>
 
   <!-- 12 NUVEM DE PALAVRAS -->
-  <section class="slide dark">
+  <section class="slide dark" data-quiz-area="1">
     <div class="content" style="text-align:center">
       <div class="eyebrow">Bônus • ao vivo</div>
       <h2>Numa palavra, por que você está nessa rede?</h2>
@@ -564,6 +578,11 @@
 </div>
 
 <script>
+const SALA=new URLSearchParams(location.search).get('sala')||'treino';
+function qrImg(url){return 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&data='+encodeURIComponent(url)}
+function semProtocolo(url){return url.replace(/^https?:\/\//,'')}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
 const slides=[...document.querySelectorAll('.slide')];
 let cur=0;
 const dots=document.getElementById('dots');
@@ -577,7 +596,33 @@ function go(n){
   document.getElementById('ctr').textContent=(cur+1)+' / '+slides.length;
   document.getElementById('prog').style.width=((cur+1)/slides.length*100)+'%';
   document.body.classList.toggle('light-active',slides[cur].classList.contains('light'));
+  enviarEstadoSlide();
 }
+
+/* ===== acompanhamento pelo celular: qual slide está ativo agora ===== */
+function textoComEspacos(el){
+  if(!el)return '';
+  const clone=el.cloneNode(true);
+  clone.querySelectorAll('br').forEach(br=>br.replaceWith(' '));
+  return clone.textContent.replace(/\s+/g,' ').trim();
+}
+function enviarEstadoSlide(){
+  const s=slides[cur];
+  const eyebrow=s.querySelector('.eyebrow');
+  const titulo=s.querySelector('h1, h2');
+  const payload={
+    sala:SALA,
+    slide:cur,
+    total:slides.length,
+    quizArea:s.dataset.quizArea==='1',
+    eyebrow:textoComEspacos(eyebrow),
+    titulo:textoComEspacos(titulo),
+  };
+  fetch('/api/apresentacao-estado',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(()=>{});
+}
+/* reenvio periódico: se alguma cópia da função perder o estado (cold start),
+   a próxima reafirmação do apresentador corrige sozinha, sem precisar clicar de novo */
+setInterval(enviarEstadoSlide,4000);
 document.getElementById('next').onclick=()=>go(cur+1);
 document.getElementById('prev').onclick=()=>go(cur-1);
 document.addEventListener('keydown',e=>{
@@ -657,7 +702,6 @@ document.querySelectorAll('.check').forEach(c=>c.onclick=()=>c.classList.toggle(
 
 /* quiz */
 /* ===== Quiz ao vivo: QR codes + resultados em tempo real ===== */
-const SALA=new URLSearchParams(location.search).get('sala')||'treino';
 
 /* mesmas perguntas de quiz.html, na mesma ordem, para rotular os resultados */
 const QUIZ_QUESTIONS=[
@@ -667,10 +711,6 @@ const QUIZ_QUESTIONS=[
   {q:'Quais são as 3 entregas de cada líder?',opts:['Cadastrar, qualificar e engajar, visitas e reuniões','Só cadastrar nomes','Panfletagem, cartazes e vídeos','Pagar mensalidade, doar e indicar'],certa:0},
   {q:'Qual o critério de qualidade da margem de segurança?',opts:['Quantidade de contatos (200+)','20 eleitores bem cuidados, com +70% de assertividade','Número de seguidores nas redes','Número de comícios'],certa:1},
 ];
-
-function qrImg(url){return 'https://api.qrserver.com/v1/create-qr-code/?size=280x280&data='+encodeURIComponent(url)}
-function semProtocolo(url){return url.replace(/^https?:\/\//,'')}
-function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
 /* ===== saudação ao vivo para quem acabou de entrar no quiz ===== */
 const quizConhecidos=new Set();
@@ -699,6 +739,8 @@ const elQrQuiz=document.getElementById('qrQuiz');
 if(elQrQuiz){elQrQuiz.src=qrImg(urlQuiz);document.getElementById('qrQuizUrl').textContent=semProtocolo(urlQuiz)}
 const elQrDin=document.getElementById('qrDin');
 if(elQrDin){elQrDin.src=qrImg(urlDin);document.getElementById('qrDinUrl').textContent=semProtocolo(urlDin)}
+const elQrCapa=document.getElementById('qrCapa');
+if(elQrCapa){elQrCapa.src=qrImg(urlQuiz);document.getElementById('qrCapaUrl').textContent=semProtocolo(urlQuiz)}
 
 function renderQuizResults(listas){
   const liders=Object.keys(listas);
@@ -748,6 +790,12 @@ setInterval(pollQuiz,2000);
 
 /* ===== painel de controle do quiz ao vivo (estilo Kahoot) ===== */
 let estadoQuiz={atual:-1,revelado:false,desdePorPergunta:[null,null,null,null,null]};
+/* o que o apresentador PRETENDE que o estado seja — muda só quando ele
+   clica em algum botão, nunca por causa do poll. É isso que o heartbeat
+   reafirma; assim, mesmo que uma cópia fria devolva um estado errado por
+   um instante (e o poll reflita isso em estadoQuiz pra exibição), a
+   próxima reafirmação corrige o servidor com a intenção verdadeira */
+let estadoQuizPretendido={atual:-1,revelado:false};
 
 async function pollEstadoQuiz(){
   try{
@@ -853,6 +901,12 @@ function renderControlPanel(){
 }
 
 async function setEstadoQuiz(payload){
+  if(payload.reiniciar){
+    estadoQuizPretendido={atual:-1,revelado:false};
+  }else{
+    if(Number.isInteger(payload.atual))estadoQuizPretendido.atual=payload.atual;
+    if(typeof payload.revelado==='boolean')estadoQuizPretendido.revelado=payload.revelado;
+  }
   try{
     await fetch('/api/quiz-estado',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({sala:SALA},payload))});
   }catch(e){/* ignora, o próximo poll corrige */}
@@ -865,6 +919,15 @@ document.getElementById('btnAcao').onclick=()=>{
   else setEstadoQuiz({atual:estadoQuiz.atual+1,revelado:false});
 };
 document.getElementById('btnReiniciar').onclick=e=>{e.preventDefault();setEstadoQuiz({reiniciar:true});};
+
+/* reafirma o que o apresentador PRETENDE periodicamente — se alguma cópia
+   da função perder o estado (cold start em produção), a próxima
+   reafirmação corrige sozinha, sem precisar ninguém perceber ou clicar de
+   novo. Reenvia estadoQuizPretendido (não estadoQuiz!), que só muda por
+   clique do apresentador — nunca pelo próprio poll de leitura */
+setInterval(()=>{
+  fetch('/api/quiz-estado',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sala:SALA,atual:estadoQuizPretendido.atual,revelado:estadoQuizPretendido.revelado})}).catch(()=>{});
+},4000);
 
 /* ===== nuvem de palavras (bônus, ao vivo) ===== */
 const NUVEM_CORES=['#FFC900','#00B1ED','#ffffff','#7ee8c7','#ff9f6b'];

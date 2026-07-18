@@ -7,11 +7,12 @@ Material de treinamento da rede de líderes: uma apresentação interativa de 13
 | Página | URL | Uso |
 |---|---|---|
 | Apresentação | `/` | Página inicial. Slides para conduzir a reunião. Um deles é o painel de controle do quiz ao vivo (QR Code de entrada + botões "Iniciar", "Revelar resposta", "Próxima pergunta"); perto do fim tem o QR da Dinâmica dos 20; a última tela é o resumo final do quiz |
-| Quiz | `/quiz.html` | Cada participante escaneia o QR, digita o nome e espera o apresentador liberar cada pergunta — responde, aguarda a revelação e vê se acertou, uma pergunta de cada vez |
+| Acompanhe no celular | `/quiz.html` | Cada participante escaneia o QR (já disponível desde a capa) e acompanha a apresentação inteira no celular — o eyebrow/título de cada slide aparecem em tempo real. Ao chegar no quiz, o celular entra sozinho no modo interativo: espera o apresentador liberar cada pergunta, responde, aguarda a revelação e vê se acertou |
 | Participante (Dinâmica) | `/dinamica.html` | Cada líder abre no celular, digita o nome e preenche os 20 nomes |
 | Telão | `/telao.html` | Projetada na TV/projetor — mostra os cards de cada líder com barra de progresso, contadores gerais e celebração ao completar 20/20 |
 | API do quiz (respostas) | `/api/quiz` | Armazenamento em memória das respostas de cada participante, com o horário de cada resposta (pro ranking de velocidade) |
 | API do quiz (estado) | `/api/quiz-estado` | Guarda qual pergunta está liberada, se a resposta já foi revelada e quando cada pergunta foi liberada — sincroniza o celular de todo mundo com o comando do apresentador |
+| API da apresentação (estado) | `/api/apresentacao-estado` | Guarda qual slide está ativo agora (com eyebrow/título extraídos ao vivo do slide) — é o que faz o celular acompanhar a apresentação inteira, não só o quiz |
 | API da nuvem de palavras | `/api/nuvem` | Armazenamento em memória da palavra bônus de cada participante |
 | API da dinâmica | `/api/dinamica` | Armazenamento em memória das listas dos 20 (sem banco de dados) |
 
@@ -47,6 +48,8 @@ Os dados vivem **na memória da função serverless** apenas durante a sessão:
 - Nada fica armazenado permanentemente — o **registro oficial** é o botão "Enviar pelo WhatsApp", que manda a lista formatada para a coordenação.
 
 Ideal para dinâmicas de sala (5–8 pessoas, sessões de até ~1h). Para persistência real, migrar depois para o sistema da campanha.
+
+**Sobre o quiz "resetar sozinho":** como o estado do quiz também vive só em memória, no Vercel — sob a carga de vários celulares consultando ao mesmo tempo — mais de uma cópia da função pode rodar ao mesmo tempo, cada uma com sua própria memória. Se algum participante cair numa cópia que acabou de "nascer", ela devolve o estado zerado. Pra isso não travar a dinâmica: o apresentador (`index.html`) reafirma o estado atual do quiz e do slide a cada ~4 segundos — se alguma cópia perdeu o estado, essa reafirmação corrige sozinha, sem ninguém precisar perceber ou clicar de novo. É um remendo, não elimina o problema de raiz (isso exigiria um banco de dados real); mas deixa o efeito raro e autocurável.
 
 ## Salas (turmas simultâneas)
 
