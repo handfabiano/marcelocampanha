@@ -212,7 +212,7 @@ function renderStage(){
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
-nome.addEventListener('input',()=>{salvar();sync();renderStage()});
+nome.addEventListener('input',()=>{salvar();agendarSync();renderStage()});
 renderStage();
 
 /* ===== sincronização com o telão/apresentação (sem banco de dados) ===== */
@@ -237,6 +237,13 @@ async function pollEstado(){
     const r=await fetch('/api/quiz-estado?sala='+encodeURIComponent(SALA),{cache:'no-store'});
     const j=await r.json();
     const novo=j.estado||{atual:-1,revelado:false};
+    if(novo.atual===-1&&estado.atual!==-1){
+      /* apresentador reiniciou o quiz (ensaio) — zera respostas antigas
+         guardadas no celular, senão a pergunta 1 já apareceria "respondida" */
+      respostas=[null,null,null,null,null];
+      palavraEnviada=false;
+      salvar();
+    }
     if(novo.atual!==estado.atual||novo.revelado!==estado.revelado){
       estado=novo;
       renderStage();
