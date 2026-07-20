@@ -903,6 +903,11 @@ function renderControlPanel(){
 async function setEstadoQuiz(payload){
   if(payload.reiniciar){
     estadoQuizPretendido={atual:-1,revelado:false};
+    /* zera também as respostas e as palavras da rodada anterior — senão o
+       ensaio deixa resíduo que contamina a contagem/ranking da rodada nova */
+    fetch('/api/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sala:SALA,reiniciar:true})}).catch(()=>{});
+    fetch('/api/nuvem',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sala:SALA,reiniciar:true})}).catch(()=>{});
+    quizListas={};
   }else{
     if(Number.isInteger(payload.atual))estadoQuizPretendido.atual=payload.atual;
     if(typeof payload.revelado==='boolean')estadoQuizPretendido.revelado=payload.revelado;

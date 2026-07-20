@@ -18,7 +18,11 @@ export default function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
 
   if (req.method === 'POST') {
-    const { sala = 'treino', lider = '', respostas = [] } = req.body || {};
+    const { sala = 'treino', lider = '', respostas = [], reiniciar } = req.body || {};
+    if (reiniciar) {
+      store[sala] = {};
+      return res.status(200).json({ ok: true });
+    }
     const key = String(lider).trim();
     if (!key) return res.status(400).json({ ok: false, erro: 'lider obrigatório' });
     if (!store[sala]) store[sala] = {};
