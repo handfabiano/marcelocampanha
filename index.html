@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,900&family=Archivo:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --navy:#04327E; --navy2:#0C46A5; --navy3:#021D4D;
+    --navy:#00569E; --navy2:#0C46A5; --navy3:#021D4D;
     --gold:#FFC900; --gold-dark:#A87F00; --cyan:#00B1ED;
     --ink:#132347; --gray:#4E5B77; --line:#D7DEEB;
     --bg:#FFFFFF; --card:#F1F5FB;
@@ -26,10 +26,15 @@
   /* marca */
   .brandchip{position:fixed;top:14px;right:16px;width:48px;height:48px;border-radius:50%;background:#fff;box-shadow:0 2px 12px rgba(2,29,77,.25);display:flex;align-items:center;justify-content:center;z-index:55}
   .brandchip img{width:28px;height:auto}
-  .cover-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:38px;align-items:center}
-  @media(max-width:860px){.cover-grid{grid-template-columns:1fr}.cover-photo img{height:36vh!important}}
-  .cover-logo{width:min(320px,64%);height:auto;margin-bottom:26px}
-  .cover-photo img{width:100%;height:min(76vh,640px);object-fit:cover;object-position:top;border-radius:24px;box-shadow:0 18px 50px rgba(2,29,77,.28);border:5px solid #fff;outline:3px solid var(--gold)}
+  .slide.cover-hero{
+    justify-content:flex-end;
+    background:
+      linear-gradient(180deg, rgba(2,29,77,.22) 0%, rgba(2,29,77,.5) 42%, rgba(2,29,77,.95) 78%, var(--navy3) 100%),
+      url('assets/flyer-roraima.webp') center 22%/cover no-repeat;
+  }
+  .cover-hero .content{max-width:740px}
+  .cover-hero .logo-panel{margin:0 0 22px;padding:12px 22px}
+  .close-watermark{position:absolute;right:-30px;bottom:-20px;width:44%;max-width:480px;opacity:.12;pointer-events:none;z-index:0}
   .light .hint{background:var(--card);border-color:var(--line);color:var(--gray)}
   .qr-chip{margin-top:18px;display:inline-flex;align-items:center;gap:14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:18px;padding:8px 20px 8px 8px}
   .qr-chip img{width:64px;height:64px;background:#fff;border-radius:10px;padding:4px;display:block}
@@ -240,24 +245,21 @@
 <div class="deck" id="deck">
 
   <!-- 1 CAPA -->
-  <section class="slide light active">
-    <div class="content cover-grid">
-      <div>
-        <img class="cover-logo" src="assets/logo.png" alt="Marcelo Nunes — Fazer o novo. Fazer diferente.">
-        <div class="eyebrow">Rede de Líderes • Eleições 2026</div>
-        <h1>Juntos, a gente<br>elege o Marcelo.</h1>
-        <p class="lead" style="margin-top:16px">Campanha Marcelo Nunes — Deputado Estadual • PDT • Roraima</p>
-        <div class="hint">Use as setas <b>← →</b> do teclado, deslize na tela ou toque nos botões para navegar</div>
-        <div class="qr-chip">
-          <img id="qrCapa" alt="QR Code para acompanhar no celular">
-          <div class="qr-chip-txt">
-            <b>📱 Acompanhe pelo celular</b>
-            <span id="qrCapaUrl"></span>
-          </div>
+  <section class="slide dark cover-hero active">
+    <div class="content">
+      <div class="logo-panel"><img src="assets/logo.png" alt="Marcelo Nunes — Pré-candidato a Deputado Estadual — #RoraimaPraFrente"></div>
+      <div class="eyebrow">Rede de Líderes • Eleições 2026</div>
+      <h1>Juntos, a gente<br>elege o Marcelo.</h1>
+      <p class="lead" style="margin-top:16px">Campanha Marcelo Nunes — Deputado Estadual • PDT • Roraima</p>
+      <div class="hint">Use as setas <b>← →</b> do teclado, deslize na tela ou toque nos botões para navegar</div>
+      <div class="qr-chip">
+        <img id="qrCapa" alt="QR Code para acompanhar no celular">
+        <div class="qr-chip-txt">
+          <b>📱 Acompanhe pelo celular</b>
+          <span id="qrCapaUrl"></span>
         </div>
-        <div class="cover-foot" style="color:var(--gray)">Encontro de alinhamento da rede • Boa Vista – RR</div>
       </div>
-      <div class="cover-photo"><img src="assets/foto-candidato.jpg" alt="Marcelo Nunes"></div>
+      <div class="cover-foot">Encontro de alinhamento da rede • Boa Vista – RR</div>
     </div>
   </section>
 
@@ -528,7 +530,8 @@
 
   <!-- 10 ENCERRAMENTO -->
   <section class="slide dark">
-    <div class="content" style="text-align:center">
+    <img class="close-watermark" src="assets/logo-watermark.png" alt="" aria-hidden="true">
+    <div class="content" style="text-align:center;position:relative;z-index:1">
       <div class="eyebrow" style="letter-spacing:.3em">Missão desta semana — não do dia 16</div>
       <h1 style="font-size:clamp(26px,5vw,58px)">Cadastre seus 20 agora.<br>A rua não espera o dia 16.</h1>
       <p class="lead" style="margin:22px auto 0;max-width:700px">Quando a propaganda abrir em 16/08, nossa rede já tem que estar montada, cadastrada e rodando. Ninguém elege um deputado sozinho — mas 20 pessoas bem cuidadas, multiplicadas por toda esta rede, elegem. Conte com a coordenação. A gente conta com você.</p>
@@ -537,7 +540,11 @@
         <img id="qrDin" alt="QR Code da Dinâmica dos 20">
         <div class="qr-url" id="qrDinUrl"></div>
       </div>
-      <div class="logo-panel"><img src="assets/logo.png" alt="Marcelo Nunes — Fazer o novo. Fazer diferente."></div>
+      <div class="qr-wrap" style="margin-top:30px">
+        <img src="assets/qr-linktree.png" alt="QR Code para o Linktree oficial da campanha" style="width:min(160px,36vw)">
+        <div class="qr-url">📲 Antes de sair, siga a campanha — linktr.ee/marcelonunesrr</div>
+      </div>
+      <div class="logo-panel"><img src="assets/logo.png" alt="Marcelo Nunes — Pré-candidato a Deputado Estadual — #RoraimaPraFrente"></div>
       <div class="cover-foot" style="margin-top:26px">Campanha Marcelo Nunes — Deputado Estadual • PDT • Eleições 2026</div>
     </div>
   </section>
